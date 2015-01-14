@@ -3,46 +3,24 @@
  */
 
 var http = require('http');
-//var async = require('async');
+var async = require('async');
+var bl = require('bl');
 
-var leResults = [];
+var inputs = [process.argv[2], process.argv[3], process.argv[4]];
 
-var inputs = [process.argv[2], process.argv[3], process.argv[4]],
-    action = function (url, callback) {
+async.map(inputs, transform, logResults);
 
-        http.get(url, function (res) {
-
-            var fullResponse = '';
-
-            res.setEncoding('utf8');
-            res.on("data", function (chunk) {
-                fullResponse += chunk;
-            });
-            res.on("end", function () {
-                callback(null, fullResponse);
-            });
-            res.on("error", callback);
-
-        }).on('error', callback);
-    },
-    finished = function (err, result) {
-
-        if (err) console.log(result);
-
-        result.forEach(function (res) {
-            console.log(res)
-        });
-    };
-
-for (var i = 0; i < inputs.length; i++) {
-
-    console.log()
-
-    action(inputs[i], function (err, res) {
-        leResults[i] = res;
-        if (i = inputs.length - 1) finished(null, leResults);
+function transform(url, callback) {
+    http.get(url, function (res) {
+        res.pipe(bl(function (err, data) {
+            callback(null, data.toString());
+        }));
     });
 }
 
-
-//async.map(inputs, action, finished);
+function logResults(err, result) {
+    if (err) console.error(result);
+    result.forEach(function (res) {
+        console.log(res)
+    });
+}
