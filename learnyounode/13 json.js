@@ -7,17 +7,47 @@ var url = require('url');
 
 var server = http.createServer(function (req, res) {
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.writeHead(200, {'Content-Type': 'application/json'});
 
-    var u = url.parse(res.url, true);
+    var u = url.parse(req.url.toString(), true);
+    var d = new Date();
+    var result = {};
 
     if (u.pathname == '/api/parsetime') {
 
+        d = new Date(u.query.iso);
+
+        result = JSON.stringify({
+            hour: d.getHours(),
+            minute: d.getMinutes(),
+            second: d.getSeconds()
+        });
+
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.end(result);
+
     }
 
-    if (u.pathname == '/api/parsetime' && u.query.iso) {
+    else if (u.pathname == '/api/unixtime') {
+
+        d = new Date(u.query.iso);
+
+        result = JSON.stringify({
+            unixtime: d.getTime()
+        });
+
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.end(result);
+
+    }
+
+    else {
+
+        res.writeHead(404);
+        res.end();
 
     }
 });
 
+//console.info('Started on port ' + process.argv[2]);
 server.listen(process.argv[2]);
